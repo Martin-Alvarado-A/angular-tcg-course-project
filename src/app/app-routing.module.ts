@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const appRoutes: Routes = [
   { path: '', redirectTo: '/recipes', pathMatch: 'full' },
@@ -21,15 +21,15 @@ const appRoutes: Routes = [
       import('./auth/auth.module').then((mod) => mod.AuthModule),
   },
 
-  //
-
   // { path: 'not-found', component: PageNotFoundComponent },
   // Always the last path
   // { path: '**', redirectTo: '/not-found' },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(appRoutes)],
+  imports: [
+    RouterModule.forRoot(appRoutes, { preloadingStrategy: PreloadAllModules }),
+  ],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}
