@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { sercretService } from '../shared/sercrets.service';
 import { User } from './user.model';
 
@@ -24,6 +25,7 @@ export class AuthService {
   ) {}
 
   private API_KEY = this.SS.API_KEY;
+  private API_KEY_ENV = environment.firebaseAPIKey;
   private Auth_URL = `https://identitytoolkit.googleapis.com/v1/accounts`;
   private tokenExpirationTimer: any;
   user = new BehaviorSubject<User>(null);
