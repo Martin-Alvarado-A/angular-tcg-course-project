@@ -1,3 +1,7 @@
+# Now Hosting using FIREBASE hosting
+
+Visit https://angular-tcg-course-project.web.app/ to see the hosted project.
+
 # AngularTcgCourseProject
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.2.0.
