@@ -5,6 +5,7 @@ import { Ingredient } from '../shared/ingredient.model';
 import { ShoppingListService } from '../shopping-list/shopping-list.service';
 import { Recipe } from './recipe.model';
 import * as SLA from '../shopping-list/store/shopping-list.actions';
+import * as fromShoppingList from '../shopping-list/store/shopping-list.reducer';
 
 // Even though we can remove this service from the providers array in the recipe.component
 // and instead use the @Injectable way, we will ignore this in favor of
@@ -31,7 +32,7 @@ export class RecipeService {
 
   constructor(
     private slService: ShoppingListService,
-    private ngRxStore: Store<{ shoppingList: { ingredients: Ingredient[] } }>
+    private ngRxStore: Store<fromShoppingList.AppState>
   ) {}
 
   getRecipes = () => this.recipes.slice();
