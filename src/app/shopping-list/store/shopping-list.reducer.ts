@@ -11,11 +11,9 @@ export function shoppingListReducer(
 ) {
   switch (action.type) {
     case SLA.ADD_INGREDIENT:
-      return { ...state, ingredients: [...state.ingredients, action.payload] }; // complete this action
-      break;
+      return { ...state, ingredients: [...state.ingredients, action.payload] };
 
     default:
       return state;
-      break;
   }
 }
