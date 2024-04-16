@@ -3,7 +3,6 @@ import { NgForm } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { Ingredient } from '../../shared/ingredient.model';
-import { ShoppingListService } from '../shopping-list.service';
 import * as SLA from '../store/shopping-list.actions';
 import * as fromShoppingList from '../store/shopping-list.reducer';
 
@@ -17,27 +16,11 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
 
   subscription: Subscription;
   editMode = false;
-  // editedItemIndex: number;
   editedItem: Ingredient;
 
-  constructor(
-    private shoppinglistService: ShoppingListService,
-    private ngRxStore: Store<fromShoppingList.AppState>
-  ) {}
+  constructor(private ngRxStore: Store<fromShoppingList.AppState>) {}
 
   ngOnInit(): void {
-    // this.subscription = this.shoppinglistService.startingEditing.subscribe(
-    //   (index: number) => {
-    //     this.editedItemIndex = index;
-    //     this.editMode = true;
-    //     this.editedItem = this.shoppinglistService.getIngredient(index);
-    //     this.shoppingListForm.setValue({
-    //       name: this.editedItem.name,
-    //       amount: this.editedItem.amount,
-    //     });
-    //   }
-    // );
-
     this.subscription = this.ngRxStore
       .select('shoppingList')
       .subscribe((stateData) => {
@@ -64,13 +47,8 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
 
     const newIngredient = new Ingredient(form.value.name, form.value.amount);
     if (this.editMode) {
-      // this.shoppinglistService.updateIngredient(
-      //   this.editedItemIndex,
-      //   newIngredient
-      // );
       this.ngRxStore.dispatch(new SLA.UpdateIngredient(newIngredient));
     } else {
-      // this.shoppinglistService.addIngredient(newIngredient);
       this.ngRxStore.dispatch(new SLA.AddIngredient(newIngredient));
     }
     this.editMode = false;
@@ -84,7 +62,6 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
   }
 
   onDelete() {
-    // this.shoppinglistService.deleteIngredient(this.editedItemIndex);
     this.ngRxStore.dispatch(new SLA.DeleteIngredient());
     this.onClear();
   }

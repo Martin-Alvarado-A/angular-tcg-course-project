@@ -3,7 +3,6 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { LoggingService } from '../logging.service';
 import { Ingredient } from '../shared/ingredient.model';
-import { ShoppingListService } from './shopping-list.service';
 import * as SLA from '../shopping-list/store/shopping-list.actions';
 import * as fromShoppingList from '../shopping-list/store/shopping-list.reducer';
 
@@ -13,24 +12,15 @@ import * as fromShoppingList from '../shopping-list/store/shopping-list.reducer'
   styleUrl: './shopping-list.component.css',
 })
 export class ShoppingListComponent implements OnInit, OnDestroy {
-  // ingredients: Ingredient[] = [];
-  // private ingAddedSub: Subscription;
   ingredients: Observable<{ ingredients: Ingredient[] }>;
 
   constructor(
-    private shoppingListService: ShoppingListService,
     private logService: LoggingService,
     private ngRxStore: Store<fromShoppingList.AppState>
   ) {}
 
   ngOnInit(): void {
     this.ingredients = this.ngRxStore.select('shoppingList');
-    // this.ingredients = this.shoppingListService.getIngredients();
-    // this.ingAddedSub = this.shoppingListService.ingredientChanged.subscribe(
-    //   (ingredients: Ingredient[]) => {
-    //     this.ingredients = ingredients;
-    //   }
-    // );
 
     this.logService.printLog('Hello from ShoppingListComponent ngOnInit');
   }
@@ -40,7 +30,6 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
   }
 
   onEditItem(index: number) {
-    // this.shoppingListService.startingEditing.next(index);
     this.ngRxStore.dispatch(new SLA.StartEdit(index));
   }
 }
