@@ -17,7 +17,7 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
 
   subscription: Subscription;
   editMode = false;
-  editedItemIndex: number;
+  // editedItemIndex: number;
   editedItem: Ingredient;
 
   constructor(
@@ -68,12 +68,7 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
       //   this.editedItemIndex,
       //   newIngredient
       // );
-      this.ngRxStore.dispatch(
-        new SLA.UpdateIngredient({
-          index: this.editedItemIndex,
-          ingredient: newIngredient,
-        })
-      );
+      this.ngRxStore.dispatch(new SLA.UpdateIngredient(newIngredient));
     } else {
       // this.shoppinglistService.addIngredient(newIngredient);
       this.ngRxStore.dispatch(new SLA.AddIngredient(newIngredient));
@@ -90,7 +85,7 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
 
   onDelete() {
     // this.shoppinglistService.deleteIngredient(this.editedItemIndex);
-    this.ngRxStore.dispatch(new SLA.DeleteIngredient(this.editedItemIndex));
+    this.ngRxStore.dispatch(new SLA.DeleteIngredient());
     this.onClear();
   }
 }
