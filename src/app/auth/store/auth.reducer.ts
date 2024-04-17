@@ -13,6 +13,7 @@ export function authReducer(
   state = initialState,
   action: AuthActions.AuthActionsType
 ) {
+  console.log(`🔎 | authReducer | state:`, state);
   switch (action.type) {
     case AuthActions.LOGIN:
       const payload = action.payload;
@@ -30,6 +31,4 @@ export function authReducer(
     default:
       return state;
   }
-
-  return state;
 }
