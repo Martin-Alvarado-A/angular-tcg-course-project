@@ -2,26 +2,27 @@ import {
   Component,
   ComponentFactoryResolver,
   OnDestroy,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable, Subscription, ignoreElements } from 'rxjs';
-import { AlertComponent } from '../shared/alert/alert.component';
-import { AuthResponseData, AuthService } from './auth.service';
-import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { AlertComponent } from '../shared/alert/alert.component';
+import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import * as fromApp from '../store/app.reducer';
+import { AuthResponseData, AuthService } from './auth.service';
 import * as AuthActions from './store/auth.actions';
 
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
 })
-export class AuthComponent implements OnDestroy {
+export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
-  // error: string = null;
+  error: string = null;
   @ViewChild(PlaceholderDirective, { static: false })
   alertHost: PlaceholderDirective;
 
@@ -33,6 +34,13 @@ export class AuthComponent implements OnDestroy {
     private componentFactoryResolve: ComponentFactoryResolver,
     private store: Store<fromApp.AppState>
   ) {}
+
+  ngOnInit(): void {
+    this.store.select('auth').subscribe((authState) => {
+      this.isLoading = authState.loading;
+      this.error = authState.authError;
+    });
+  }
 
   ngOnDestroy(): void {
     if (this.closeSub) this.closeSub.unsubscribe();
@@ -59,20 +67,20 @@ export class AuthComponent implements OnDestroy {
       authObs = this.authService.signup(email, password);
     }
 
-    authObs.subscribe(
-      (resData) => {
-        console.log(`🔎 | AuthComponent | onSubmit > resData:`, resData);
-        // this.error = null;
-        this.isLoading = false;
-        this.router.navigate(['/recipes']);
-      },
-      (errorMsg) => {
-        console.log(`🔎 | AuthComponent | onSubmit > error:`, errorMsg);
-        // this.error = errorMsg;
-        this.showErrorAlert(errorMsg);
-        this.isLoading = false;
-      }
-    );
+    // authObs.subscribe(
+    //   (resData) => {
+    //     console.log(`🔎 | AuthComponent | onSubmit > resData:`, resData);
+    //     // this.error = null;
+    //     this.isLoading = false;
+    //     this.router.navigate(['/recipes']);
+    //   },
+    //   (errorMsg) => {
+    //     console.log(`🔎 | AuthComponent | onSubmit > error:`, errorMsg);
+    //     // this.error = errorMsg;
+    //     this.showErrorAlert(errorMsg);
+    //     this.isLoading = false;
+    //   }
+    // );
 
     form.reset();
   }
