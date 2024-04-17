@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { sercretService } from '../../shared/sercrets.service';
@@ -13,6 +14,7 @@ export interface AuthResponseData {
   registered?: boolean;
 }
 
+@Injectable()
 export class AuthEffects {
   private API_KEY = this.SS.API_KEY;
   private Auth_URL = `https://identitytoolkit.googleapis.com/v1/accounts`;
@@ -34,11 +36,21 @@ export class AuthEffects {
               body
             )
             .pipe(
-              catchError((error) => {
-                of();
-              }),
               map((resData) => {
-                of();
+                const expirationDate = new Date(
+                  new Date().getTime() + +resData.expiresIn * 1000
+                );
+                return of(
+                  new AuthActions.Login({
+                    email: resData.email,
+                    userId: resData.localId,
+                    token: resData.idToken,
+                    expirationDate: expirationDate,
+                  })
+                );
+              }),
+              catchError((error) => {
+                return of();
               })
             );
         })
