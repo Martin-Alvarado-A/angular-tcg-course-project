@@ -15,15 +15,76 @@ export interface AuthResponseData {
   registered?: boolean;
 }
 
+const handleAuthentication = (resData) => {
+  const expirationDate = new Date(
+    new Date().getTime() + +resData.expiresIn * 1000
+  );
+  return new AuthActions.AuthSuccess({
+    email: resData.email,
+    userId: resData.localId,
+    token: resData.idToken,
+    expirationDate: expirationDate,
+  });
+};
+
+const handleError = (errorRes) => {
+  console.error(`🔎 | AuthEffects | authLogin > errorRes:`, errorRes);
+  let errorMsg = 'An unknown error occurred!';
+
+  if (!errorRes.error || !errorRes.error.error) {
+    return of(new AuthActions.AuthFail(errorMsg));
+  }
+
+  switch (errorRes.error.error.message) {
+    case 'EMAIL_EXISTS':
+      errorMsg = 'The email already exists.';
+      break;
+    case 'EMAIL_NOT_FOUND': // Deprecated?
+      errorMsg = 'The email does not exist.';
+      break;
+    case 'INVALID_PASSWORD': // Deprecated?
+      errorMsg = 'The password is not correct.';
+      break;
+    case 'INVALID_LOGIN_CREDENTIALS':
+      errorMsg = 'The login credentials are invalid.';
+      break;
+
+    default:
+      break;
+  }
+
+  return of(new AuthActions.AuthFail(errorMsg));
+};
+
 @Injectable()
 export class AuthEffects {
   private API_KEY = this.SS.API_KEY;
   private Auth_URL = `https://identitytoolkit.googleapis.com/v1/accounts`;
 
   authSignup = createEffect(
-    () => this.actions$.pipe(ofType(AuthActions.SIGNUP_START)),
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.SIGNUP_START),
+        switchMap((signupAction: AuthActions.SignupStart) => {
+          const body = {
+            email: signupAction.payload.email,
+            password: signupAction.payload.password,
+            returnSecureToken: true,
+          };
+
+          return this.http
+            .post<AuthResponseData>(
+              `${this.Auth_URL}:signUp?key=${this.API_KEY}`,
+              body
+            )
+            .pipe(
+              map((resData) => handleAuthentication(resData)),
+              catchError((errorRes) => handleError(errorRes))
+            );
+        })
+      ),
     {
-      dispatch: false,
+      dispatch: true,
     }
   );
 
@@ -44,48 +105,8 @@ export class AuthEffects {
               body
             )
             .pipe(
-              map((resData) => {
-                const expirationDate = new Date(
-                  new Date().getTime() + +resData.expiresIn * 1000
-                );
-                return new AuthActions.AuthSuccess({
-                  email: resData.email,
-                  userId: resData.localId,
-                  token: resData.idToken,
-                  expirationDate: expirationDate,
-                });
-              }),
-              catchError((errorRes) => {
-                console.error(
-                  `🔎 | AuthEffects | authLogin > errorRes:`,
-                  errorRes
-                );
-                let errorMsg = 'An unknown error occurred!';
-
-                if (!errorRes.error || !errorRes.error.error) {
-                  return of(new AuthActions.AuthFail(errorMsg));
-                }
-
-                switch (errorRes.error.error.message) {
-                  case 'EMAIL_EXISTS':
-                    errorMsg = 'The email already exists.';
-                    break;
-                  case 'EMAIL_NOT_FOUND': // Deprecated?
-                    errorMsg = 'The email does not exist.';
-                    break;
-                  case 'INVALID_PASSWORD': // Deprecated?
-                    errorMsg = 'The password is not correct.';
-                    break;
-                  case 'INVALID_LOGIN_CREDENTIALS':
-                    errorMsg = 'The login credentials are invalid.';
-                    break;
-
-                  default:
-                    break;
-                }
-
-                return of(new AuthActions.AuthFail(errorMsg));
-              })
+              map((resData) => handleAuthentication(resData)),
+              catchError((errorRes) => handleError(errorRes))
             );
         })
       ),
