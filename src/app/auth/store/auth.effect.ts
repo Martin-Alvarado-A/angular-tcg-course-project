@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { sercretService } from '../../shared/sercrets.service';
-import * as AuthActions from './auth.actions';
+import { AuthService } from '../auth.service';
 import { User } from '../user.model';
+import * as AuthActions from './auth.actions';
 
 export interface AuthResponseData {
   idToken: string;
@@ -88,6 +89,9 @@ export class AuthEffects {
               body
             )
             .pipe(
+              tap((resData) => {
+                this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+              }),
               map((resData) => handleAuthentication(resData)),
               catchError((errorRes) => handleError(errorRes))
             );
@@ -115,6 +119,9 @@ export class AuthEffects {
               body
             )
             .pipe(
+              tap((resData) => {
+                this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+              }),
               map((resData) => handleAuthentication(resData)),
               catchError((errorRes) => handleError(errorRes))
             );
@@ -126,7 +133,7 @@ export class AuthEffects {
   authRedirect = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.AUTHENTICATE_SUCCESS, AuthActions.LOGOUT),
+        ofType(AuthActions.AUTHENTICATE_SUCCESS),
         tap(() => {
           this.router.navigate(['/']);
         })
@@ -155,17 +162,18 @@ export class AuthEffects {
           );
 
           if (loadedUser.token) {
+            const expirationDuration =
+              new Date(userData._tokenExpirationDate).getTime() -
+              new Date().getTime();
+
+            this.authService.setLogoutTimer(expirationDuration);
+
             return new AuthActions.AuthSuccess({
               email: loadedUser.email,
               userId: loadedUser.id,
               token: loadedUser.token,
               expirationDate: new Date(userData._tokenExpirationDate),
             });
-
-            // const expirationDuration =
-            //   new Date(userData._tokenExpirationDate).getTime() -
-            //   new Date().getTime();
-            // this.autoLogout(expirationDuration);
           }
           return { type: 'Fail' };
         })
@@ -178,7 +186,9 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.LOGOUT),
         tap(() => {
+          this.authService.clearLogoutTimer();
           localStorage.removeItem('userData');
+          this.router.navigate(['/auth']);
         })
       ),
     { dispatch: false }
@@ -188,6 +198,7 @@ export class AuthEffects {
     private actions$: Actions,
     private http: HttpClient,
     private SS: sercretService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 }
