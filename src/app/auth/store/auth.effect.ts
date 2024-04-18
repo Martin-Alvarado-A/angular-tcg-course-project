@@ -20,6 +20,13 @@ export class AuthEffects {
   private API_KEY = this.SS.API_KEY;
   private Auth_URL = `https://identitytoolkit.googleapis.com/v1/accounts`;
 
+  authSignup = createEffect(
+    () => this.actions$.pipe(ofType(AuthActions.SIGNUP_START)),
+    {
+      dispatch: false,
+    }
+  );
+
   authLogin = createEffect(
     () =>
       this.actions$.pipe(
@@ -41,7 +48,7 @@ export class AuthEffects {
                 const expirationDate = new Date(
                   new Date().getTime() + +resData.expiresIn * 1000
                 );
-                return new AuthActions.Login({
+                return new AuthActions.AuthSuccess({
                   email: resData.email,
                   userId: resData.localId,
                   token: resData.idToken,
@@ -56,7 +63,7 @@ export class AuthEffects {
                 let errorMsg = 'An unknown error occurred!';
 
                 if (!errorRes.error || !errorRes.error.error) {
-                  return of(new AuthActions.LoginFail(errorMsg));
+                  return of(new AuthActions.AuthFail(errorMsg));
                 }
 
                 switch (errorRes.error.error.message) {
@@ -77,7 +84,7 @@ export class AuthEffects {
                     break;
                 }
 
-                return of(new AuthActions.LoginFail(errorMsg));
+                return of(new AuthActions.AuthFail(errorMsg));
               })
             );
         })
@@ -88,7 +95,7 @@ export class AuthEffects {
   authSuccess = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.LOGIN),
+        ofType(AuthActions.AUTHENTICATE_SUCCESS),
         tap(() => {
           this.router.navigate(['/']);
         })
