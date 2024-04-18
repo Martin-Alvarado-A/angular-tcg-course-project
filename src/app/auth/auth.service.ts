@@ -1,17 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import * as AuthActions from '../auth/store/auth.actions';
 import { sercretService } from '../shared/sercrets.service';
 import * as fromApp from '../store/app.reducer';
-import * as AuthActions from '../auth/store/auth.actions';
-
-export interface AuthResponseData {
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered?: boolean;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
