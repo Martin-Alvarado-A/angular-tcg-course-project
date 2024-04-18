@@ -17,7 +17,7 @@ export function authReducer(
   state = initialState,
   action: AuthActions.AuthActionsType
 ) {
-  console.log(`🔎 | authReducer | state:`, state);
+  console.log(`🔎 | authReducer | ${action.type} state:`, state);
   switch (action.type) {
     case AuthActions.LOGIN:
       const payload = action.payload;
@@ -33,13 +33,13 @@ export function authReducer(
       return { ...state, user: null };
 
     case AuthActions.LOGIN_START:
-      return { ...state, autherror: null, loading: true };
+      return { ...state, authError: null, loading: true };
 
     case AuthActions.LOGIN_FAIL:
       return {
         ...state,
         user: null,
-        autherror: action.payload,
+        authError: action.payload,
         loading: false,
       };
 

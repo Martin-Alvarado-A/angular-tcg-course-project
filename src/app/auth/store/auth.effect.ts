@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { sercretService } from '../../shared/sercrets.service';
 import * as AuthActions from './auth.actions';
 
@@ -40,19 +41,56 @@ export class AuthEffects {
                 const expirationDate = new Date(
                   new Date().getTime() + +resData.expiresIn * 1000
                 );
-                return of(
-                  new AuthActions.Login({
-                    email: resData.email,
-                    userId: resData.localId,
-                    token: resData.idToken,
-                    expirationDate: expirationDate,
-                  })
-                );
+                return new AuthActions.Login({
+                  email: resData.email,
+                  userId: resData.localId,
+                  token: resData.idToken,
+                  expirationDate: expirationDate,
+                });
               }),
-              catchError((error) => {
-                return of();
+              catchError((errorRes) => {
+                console.error(
+                  `🔎 | AuthEffects | authLogin > errorRes:`,
+                  errorRes
+                );
+                let errorMsg = 'An unknown error occurred!';
+
+                if (!errorRes.error || !errorRes.error.error) {
+                  return of(new AuthActions.LoginFail(errorMsg));
+                }
+
+                switch (errorRes.error.error.message) {
+                  case 'EMAIL_EXISTS':
+                    errorMsg = 'The email already exists.';
+                    break;
+                  case 'EMAIL_NOT_FOUND': // Deprecated?
+                    errorMsg = 'The email does not exist.';
+                    break;
+                  case 'INVALID_PASSWORD': // Deprecated?
+                    errorMsg = 'The password is not correct.';
+                    break;
+                  case 'INVALID_LOGIN_CREDENTIALS':
+                    errorMsg = 'The login credentials are invalid.';
+                    break;
+
+                  default:
+                    break;
+                }
+
+                return of(new AuthActions.LoginFail(errorMsg));
               })
             );
+        })
+      ),
+    { dispatch: true }
+  );
+
+  authSuccess = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.LOGIN),
+        tap(() => {
+          this.router.navigate(['/']);
         })
       ),
     { dispatch: false }
@@ -61,8 +99,7 @@ export class AuthEffects {
   constructor(
     private actions$: Actions,
     private http: HttpClient,
-    private SS: sercretService
+    private SS: sercretService,
+    private router: Router
   ) {}
 }
-
-//     authLogin = createEffect(() => this.actions$.pipe(...));
