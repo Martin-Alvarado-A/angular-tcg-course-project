@@ -1,20 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { map } from 'rxjs';
+import { Subscription, map } from 'rxjs';
 import * as fromApp from '../../store/app.reducer';
 import { RecipeService } from '../recipe.service';
+import * as RecipesActions from '../store/recipe.actions';
 
 @Component({
   selector: 'app-recipe-edit',
   templateUrl: './recipe-edit.component.html',
   styleUrl: './recipe-edit.component.css',
 })
-export class RecipeEditComponent implements OnInit {
+export class RecipeEditComponent implements OnInit, OnDestroy {
   id: number;
   editMode = false;
   recipeForm: FormGroup;
+
+  private storeSub: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,6 +34,12 @@ export class RecipeEditComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.storeSub) {
+      this.storeSub.unsubscribe();
+    }
+  }
+
   onSubmit() {
     console.log(
       `🔎 | RecipeEditComponent | onSubmit > recipeForm.value:`,
@@ -45,9 +54,16 @@ export class RecipeEditComponent implements OnInit {
     // console.log(`🔎 | RecipeEditComponent | onSubmit > newRecipe:`, newRecipe);
 
     if (this.editMode) {
-      this.recipeService.UpdateRecipe(this.id, this.recipeForm.value);
+      // this.recipeService.UpdateRecipe(this.id, this.recipeForm.value);
+      this.store.dispatch(
+        new RecipesActions.UpdateRecipe({
+          index: this.id,
+          newRecipe: this.recipeForm.value,
+        })
+      );
     } else {
-      this.recipeService.addRecipe(this.recipeForm.value);
+      // this.recipeService.addRecipe(this.recipeForm.value);
+      this.store.dispatch(new RecipesActions.AddRecipe(this.recipeForm.value));
     }
     this.onCancel();
   }
@@ -60,7 +76,7 @@ export class RecipeEditComponent implements OnInit {
 
     if (this.editMode) {
       // const recipe = this.recipeService.getRecipeById(this.id);
-      this.store
+      this.storeSub = this.store
         .select('recipes')
         .pipe(
           map((recipeState) => {
